@@ -406,7 +406,11 @@ module Auva
       window = app.open_window(backend: selected, width: 800, height: 600, title: title)
       current = theme
       app.global(:theme, current)
-      tabs = build_theme_tabs(themes, category) { |index| app.global(:theme, themes.fetch(index).last) } if themes && themes.length > 1
+      tabs = build_theme_tabs(themes, category) do |index|
+        current = themes.fetch(index).last
+        app.global(:theme, current)
+        window.request_frame
+      end if themes && themes.length > 1
       window.draw do
         root = tabs ? Zaniah::Div.new.flex_col.bg(current.colors.background).child(tabs) : element(current, category: category)
         root

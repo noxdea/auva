@@ -56,4 +56,9 @@ RSpec.describe Auva do
   ensure
     file&.unlink
   end
+
+  it "renders a named preview category" do
+    expect(Auva::Preview.render(Zaniah::Theme.dark, category: :components).byteslice(0, 4)).to eq("\x89PNG".b)
+    expect { Auva::Preview.render(Zaniah::Theme.dark, category: :unknown) }.to raise_error(Auva::Error)
+  end
 end

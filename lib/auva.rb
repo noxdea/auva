@@ -189,6 +189,10 @@ module Auva
 
   class Png
     def self.write(theme, path, width: 800, height: 480, category: :colors)
+      File.binwrite(path, bytes(theme, width: width, height: height, category: category))
+    end
+
+    def self.bytes(theme, width: 800, height: 480, category: :colors)
       colors = category_colors(theme, category)
       background = rgba(theme.colors.background)
       pixels = Array.new(width * height, background)
@@ -200,7 +204,7 @@ module Auva
           (x0...[x0 + width / 5, width].min).each { |x| pixels[y * width + x] = value }
         end
       end
-      File.binwrite(path, encode(width, height, pixels))
+      encode(width, height, pixels)
     end
 
     def self.write_sheets(theme, directory)
@@ -230,7 +234,7 @@ module Auva
 
     def self.encode(width, height, pixels)
       raw = (0...height).map { |y| "\0".b + pixels.slice(y * width, width).join }.join
-      png_chunk("IHDR", [width, height, 8, 6, 0, 0, 0].pack("NNCCCCC")) +
+      "\x89PNG\r\n\x1a\n".b + png_chunk("IHDR", [width, height, 8, 6, 0, 0, 0].pack("NNCCCCC")) +
         png_chunk("IDAT", Zlib::Deflate.deflate(raw)) + png_chunk("IEND", "")
     end
 
@@ -243,6 +247,19 @@ module Auva
       [payload.bytesize, type, payload, Zlib.crc32(type + payload)].pack("N a4 a* N")
     end
     private_class_method :png_chunk
+  end
+
+  class Preview
+    CATEGORIES = %i[colors typography spacing radii shadows motion components].freeze
+
+    def self.render(theme, category: :colors, width: 800, height: 480)
+      raise Error, "unknown preview category: #{category}" unless CATEGORIES.include?(category.to_sym)
+      Png.bytes(theme, width: width, height: height, category: category)
+    end
+
+    def self.render_all(theme, directory)
+      Png.write_sheets(theme, directory)
+    end
   end
 
   class Watcher

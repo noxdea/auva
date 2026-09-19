@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080c0b">
+  <meta name="description" content="Auva is a JSONC design-token loader and deterministic theme-sheet generator for Zaniah.">
+  <link rel="canonical" href="https://noxdea.github.io/auva/">
+  <title>Auva — Design tokens for Zaniah</title>
+  <style>
+    :root { color-scheme: dark; --bg:#080c0b; --panel:#101715; --line:#293a34; --text:#edf2ef; --muted:#9faea8; --accent:#83b79f; --ink:#08120d; }
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body { margin: 0; min-width: 320px; color: var(--text); background: var(--bg); font: 16px/1.62 "Helvetica Neue", Helvetica, Arial, sans-serif; }
+    a { color: inherit; }
+    .skip { position: absolute; top: -5rem; left: 1rem; z-index: 20; padding: .65rem .9rem; color: var(--ink); background: var(--accent); }
+    .skip:focus { top: 1rem; }
+    .wrap { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    header { display: flex; align-items: center; justify-content: space-between; min-height: 76px; border-bottom: 1px solid var(--line); }
+    .brand { font: 700 1.15rem/1 "Helvetica Neue", Helvetica, sans-serif; text-decoration: none; }
+    nav { display: flex; gap: 1.4rem; color: var(--muted); font-size: .9rem; }
+    nav a { text-decoration: none; }
+    nav a:hover { color: var(--text); }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(520px, 1fr); gap: clamp(3rem, 7vw, 7rem); align-items: center; min-height: 700px; padding: 90px 0; }
+    .context { margin: 0 0 1.2rem; color: var(--accent); font-size: .95rem; }
+    h1, h2 { margin: 0; font-family: "Helvetica Neue", Helvetica, sans-serif; font-weight: 700; text-wrap: balance; }
+    h1 { max-width: 11ch; font-size: clamp(3.4rem, 5.7vw, 5.7rem); line-height: .94; }
+    h2 { font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1.05; }
+    p { text-wrap: pretty; }
+    .lede { max-width: 54ch; margin: 1.6rem 0 0; color: var(--muted); font-size: 1.08rem; }
+    .actions { display: flex; flex-wrap: wrap; gap: .8rem; margin-top: 2rem; }
+    .button { display: inline-flex; align-items: center; min-height: 44px; padding: .65rem 1rem; border: 1px solid var(--line); text-decoration: none; }
+    .button.primary { border-color: var(--accent); color: var(--ink); background: var(--accent); font-weight: 700; }
+    .token-lab { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); background: var(--panel); }
+    .source { padding: 1.2rem; border-right: 1px solid var(--line); color: var(--muted); font: .72rem/1.75 ui-monospace, "SFMono-Regular", Consolas, monospace; }
+    .source .key { color: var(--text); }
+    .source .value { color: var(--accent); }
+    .source .comment { color: #718079; }
+    .inspect { padding: 1.2rem; }
+    .inspect h3 { margin: 0 0 1rem; font-size: .85rem; font-weight: 600; }
+    .swatch { display: grid; grid-template-columns: 42px 1fr auto; gap: .75rem; align-items: center; padding: .7rem 0; border-top: 1px solid var(--line); font-size: .75rem; font-variant-numeric: tabular-nums; }
+    .chip { width: 42px; height: 28px; border: 1px solid #53645d; background: var(--accent); }
+    .chip.surface { background: #19211e; } .chip.text { background: #edf2ef; } .chip.muted { background: #9faea8; }
+    .swatch span:last-child { color: var(--muted); }
+    .contrast { margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--line); }
+    .contrast-row { display: flex; justify-content: space-between; gap: 1rem; padding: .35rem 0; color: var(--muted); font-size: .72rem; font-variant-numeric: tabular-nums; }
+    .contrast-row b { color: var(--accent); }
+    .section { display: grid; grid-template-columns: .72fr 1.28fr; gap: clamp(2rem, 7vw, 7rem); padding: 88px 0; border-top: 1px solid var(--line); }
+    .section-copy { max-width: 38ch; color: var(--muted); }
+    .rows { border-top: 1px solid var(--line); }
+    .row { display: grid; grid-template-columns: 150px 1fr; gap: 1.5rem; padding: 1.35rem 0; border-bottom: 1px solid var(--line); }
+    .row strong { color: var(--accent); font-weight: 600; }
+    .row p { margin: 0; color: var(--muted); }
+    .categories { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--line); }
+    .category { display: grid; grid-template-columns: 24px 1fr; gap: .8rem; padding: 1rem 0; border-bottom: 1px solid var(--line); color: var(--muted); }
+    .category:nth-child(odd) { padding-right: 1rem; }
+    .category:nth-child(even) { padding-left: 1rem; border-left: 1px solid var(--line); }
+    .category i { width: 24px; height: 24px; border: 1px solid var(--accent); }
+    .category b { display: block; color: var(--text); font-weight: 600; }
+    pre.command { margin: 0; overflow-x: auto; padding: 1.2rem; border: 1px solid var(--line); color: var(--accent); background: var(--panel); font: .9rem/1.7 ui-monospace, "SFMono-Regular", Consolas, monospace; }
+    footer { display: flex; justify-content: space-between; gap: 1rem; padding: 30px 0 46px; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+    @media (max-width: 900px) {
+      .hero, .section { grid-template-columns: 1fr; }
+      .hero { min-height: auto; padding: 72px 0; }
+      .token-lab { max-width: 680px; }
+    }
+    @media (max-width: 580px) {
+      .wrap { width: min(100% - 24px, 1180px); }
+      nav a:not(:last-child) { display: none; }
+      .token-lab { grid-template-columns: 1fr; }
+      .source { border-right: 0; border-bottom: 1px solid var(--line); }
+      .row, .categories { grid-template-columns: 1fr; }
+      .row { gap: .35rem; }
+      .category:nth-child(even) { padding-left: 0; border-left: 0; }
+      footer { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="wrap">
+    <a class="brand" href="./">Auva</a>
+    <nav aria-label="Primary navigation">
+      <a href="#contract">Contract</a>
+      <a href="#system">System</a>
+      <a href="https://github.com/noxdea/auva">Source</a>
+    </nav>
+  </header>
+  <main id="content">
+    <section class="hero wrap">
+      <div>
+        <p class="context">Design tokens for Zaniah</p>
+        <h1>Make the theme inspectable before it reaches the interface.</h1>
+        <p class="lede">Auva loads JSONC into a validated Zaniah theme, checks essential contrast pairs, and exports deterministic sheets for every token category.</p>
+        <div class="actions"><a class="button primary" href="https://rubygems.org/gems/auva">Install the gem</a><a class="button" href="https://github.com/noxdea/auva#quick-start">Read the guide</a></div>
+      </div>
+      <div class="token-lab" aria-label="Auva token validation example">
+        <pre class="source"><code><span class="comment">// tokens.jsonc</span>
+{
+  <span class="key">"extends"</span>: <span class="value">"dark"</span>,
+  <span class="key">"colors"</span>: {
+    <span class="key">"accent"</span>: <span class="value">"#83b79f"</span>,
+    <span class="key">"background"</span>: <span class="value">"#080c0b"</span>
+  },
+  <span class="key">"motion"</span>: {
+    <span class="key">"reduced"</span>: <span class="value">true</span>
+  }
+}</code></pre>
+        <div class="inspect"><h3>Resolved theme</h3><div class="swatch"><i class="chip" aria-hidden="true">&nbsp;</i><span>accent</span><span>#83b79f</span></div><div class="swatch"><i class="chip surface" aria-hidden="true">&nbsp;</i><span>surface</span><span>#19211e</span></div><div class="swatch"><i class="chip text" aria-hidden="true">&nbsp;</i><span>text</span><span>#edf2ef</span></div><div class="swatch"><i class="chip muted" aria-hidden="true">&nbsp;</i><span>text_muted</span><span>#9faea8</span></div><div class="contrast"><div class="contrast-row"><span>text / background</span><b>AAA</b></div><div class="contrast-row"><span>accent_text / accent</span><b>AA</b></div></div></div>
+      </div>
+    </section>
+    <section class="section wrap" id="contract">
+      <div><h2>Bad tokens fail where they are written.</h2><p class="section-copy">The schema comes from Zaniah's theme members, so validation tracks the real interface contract instead of a parallel copy.</p></div>
+      <div class="rows">
+        <div class="row"><strong>Parse</strong><p>Accept comments and trailing commas while retaining source ranges.</p></div>
+        <div class="row"><strong>Validate</strong><p>Reject unknown categories, members, types, colors, and shadow fields with a line and token path.</p></div>
+        <div class="row"><strong>Check</strong><p>Measure WCAG AA and AAA contrast for the color pairs users depend on.</p></div>
+      </div>
+    </section>
+    <section class="section wrap" id="system">
+      <div><h2>Inspect the whole system, not a single swatch.</h2></div>
+      <div class="categories"><div class="category"><i aria-hidden="true">&nbsp;</i><span><b>Colors</b>Semantic palette and contrast</span></div><div class="category"><i aria-hidden="true">&nbsp;</i><span><b>Typography</b>Families and type scale</span></div><div class="category"><i aria-hidden="true">&nbsp;</i><span><b>Spacing</b>Numeric rhythm</span></div><div class="category"><i aria-hidden="true">&nbsp;</i><span><b>Radii</b>Named corner system</span></div><div class="category"><i aria-hidden="true">&nbsp;</i><span><b>Shadows</b>Validated shadow members</span></div><div class="category"><i aria-hidden="true">&nbsp;</i><span><b>Motion</b>Durations, easing, reduction</span></div><div class="category"><i aria-hidden="true">&nbsp;</i><span><b>Buttons</b>Interactive states</span></div><div class="category"><i aria-hidden="true">&nbsp;</i><span><b>Components</b>Full UI gallery</span></div></div>
+    </section>
+    <section class="section wrap">
+      <div><h2>Load and check a theme.</h2></div>
+      <pre class="command"><code>gem install auva
+auva tokens.jsonc --check --strict</code></pre>
+    </section>
+  </main>
+  <footer class="wrap"><span>Auva 0.1.0</span><span>Ruby 3.2+ · MIT</span></footer>
+</body>
+</html>

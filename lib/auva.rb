@@ -299,7 +299,12 @@ module Auva
 
     def initialize(path, theme: nil, latency: 0.1)
       @path, @theme, @latency, @last = path, theme || Auva.load(path), latency, File.mtime(path)
-      @watch = Zaniah::Platform.watch(File.dirname(File.expand_path(path)), latency: latency)
+      @watch = begin
+        Zaniah::Platform.watch(File.dirname(File.expand_path(path)), latency: latency)
+      rescue StandardError => error
+        @error = error
+        nil
+      end
     end
 
     def poll

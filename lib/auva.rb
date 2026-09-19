@@ -194,7 +194,8 @@ module Auva
     end
 
     def self.bytes(theme, width: 800, height: 480, category: :colors)
-      return element_bytes(theme, width: width, height: height, category: category) if %i[typography components].include?(category.to_sym)
+      return element_bytes(theme, width: width, height: height, category: category) if
+        %i[typography spacing radii shadows motion buttons components].include?(category.to_sym)
       colors = category_colors(theme, category)
       background = rgba(theme.colors.background)
       pixels = Array.new(width * height, background)
@@ -284,6 +285,7 @@ module Auva
       raise Error, "unknown preview category: #{category}" unless CATEGORIES.include?(category)
       return component_gallery(theme) if category == :components
       return typography_preview(theme) if category == :typography
+      return token_preview(theme, category) unless category == :colors
       colors = Png.send(:category_colors, theme, category)
       title = Zaniah::Text.new("Auva · #{category}", size: 26, color: theme.colors.text)
       root = Zaniah::Div.new.flex_col.p(32).gap(12).bg(theme.colors.background).child(title)
@@ -307,6 +309,48 @@ module Auva
       end)
       Zaniah::Div.new.flex_col.p(32).gap(12).bg(theme.colors.background)
         .child(Zaniah::UI::Label.new("Auva · typography", size: :xl)).child(Zaniah::ScrollView.new(scrollbar: :always).flex_1.child(body))
+    end
+
+    def self.token_preview(theme, category)
+      title = Zaniah::UI::Label.new("Auva · #{category}", size: :xl)
+      body = case category
+      when :spacing
+        theme.spacing.sort_by { |key, _value| key }.first(8).map do |key, value|
+          Zaniah::Div.new.flex_row.items_center.gap(12).child(
+            Zaniah::UI::Label.new("spacing[#{key}] = #{value}", size: :sm)
+          ).child(Zaniah::Div.new.w([value, 240].min).h(24).bg(theme.colors.accent))
+        end
+      when :radii
+        theme.radii.map do |name, radius|
+          Zaniah::Div.new.flex_row.items_center.gap(12).child(
+            Zaniah::UI::Label.new("radii.#{name} = #{radius}", size: :sm)
+          ).child(Zaniah::Div.new.w(180).h(56).bg(theme.colors.surface).border(1)
+            .border_color(theme.colors.border).rounded(radius))
+        end
+      when :shadows
+        theme.shadows.map do |name, shadow|
+          Zaniah::Div.new.flex_row.items_center.gap(12).child(
+            Zaniah::UI::Label.new("shadows.#{name}", size: :sm)
+          ).child(Zaniah::Div.new.w(180).h(56).bg(theme.colors.surface).rounded(theme.radii[:md])
+            .style(shadows: shadow))
+        end
+      when :motion
+        %i[duration_fast duration_base duration_slow easing_standard easing_decelerate easing_accelerate reduced].map do |name|
+          value = theme.motion.public_send(name)
+          Zaniah::UI::Card.new(Zaniah::UI::Label.new(name.to_s, tone: :muted, size: :xs),
+            Zaniah::UI::Label.new(value.to_s, size: :md))
+        end
+      when :buttons
+        disabled = Zaniah::UI::Button.new("Disabled").disabled
+        [Zaniah::UI::Button.new("Primary"), Zaniah::UI::Button.new("Secondary", variant: :secondary),
+          Zaniah::UI::Button.new("Danger", variant: :danger), disabled]
+      else
+        []
+      end
+      body = Zaniah::Div.new.flex_col.gap(12).children(body)
+      Zaniah::Div.new.flex_col.p(32).gap(16).bg(theme.colors.background).child(title).child(
+        Zaniah::ScrollView.new(scrollbar: :always).flex_1.child(body)
+      )
     end
 
     def self.component_gallery(theme)

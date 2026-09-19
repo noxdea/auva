@@ -70,4 +70,12 @@ RSpec.describe Auva do
   it "builds the full typography scale preview" do
     expect(Auva::Preview.element(Zaniah::Theme.dark, category: :typography)).to be_a(Zaniah::Div)
   end
+
+  it "renders token categories from the active theme" do
+    %i[spacing radii shadows motion buttons].each do |category|
+      bytes = Auva::Preview.render(Zaniah::Theme.dark, category: category, width: 320, height: 240)
+      expect(bytes.byteslice(0, 8)).to eq("\x89PNG\r\n\x1a\n".b)
+      expect(bytes).to eq(Auva::Preview.render(Zaniah::Theme.dark, category: category, width: 320, height: 240))
+    end
+  end
 end

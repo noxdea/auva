@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "optparse"
+require "fileutils"
 require "zlib"
 require "kochab"
 require "zaniah"
@@ -176,6 +177,13 @@ module Auva
       File.binwrite(path, encode(width, height, pixels))
     end
 
+    def self.write_sheets(theme, directory)
+      FileUtils.mkdir_p(directory)
+      %w[colors typography spacing radii shadows motion].each do |category|
+        write(theme, File.join(directory, "#{category}.png"))
+      end
+    end
+
     def self.encode(width, height, pixels)
       raw = (0...height).map { |y| "\0".b + pixels.slice(y * width, width).join }.join
       png_chunk("IHDR", [width, height, 8, 6, 0, 0, 0].pack("NNCCCCC")) +
@@ -193,27 +201,56 @@ module Auva
     private_class_method :png_chunk
   end
 
+  class Watcher
+    attr_reader :theme, :error
+
+    def initialize(path, theme: nil, latency: 0.1)
+      @path, @theme, @latency, @last = path, theme || Auva.load(path), latency, File.mtime(path)
+      @watch = Zaniah::Platform.watch(File.dirname(File.expand_path(path)), latency: latency)
+    end
+
+    def poll
+      events = @watch.poll(timeout: 0)
+      changed = events.any? { |event| File.expand_path(event.path) == File.expand_path(@path) }
+      changed ||= File.file?(@path) && File.mtime(@path) != @last
+      return false unless changed
+      @last = File.mtime(@path)
+      @theme = Auva.load(@path)
+      @error = nil
+      true
+    rescue StandardError => error
+      @error = error
+      false
+    end
+  end
+
   class CLI
     def self.run(argv, out: $stdout, err: $stderr)
-      options = {check: false, strict: false, export: nil, builtin: nil}
+      options = {check: false, strict: false, export: nil, builtin: nil, themes: nil, no_watch: false}
       parser = OptionParser.new do |opts|
         opts.banner = "Usage: auva [TOKENS.jsonc] [options]"
         opts.on("--builtin NAME", "use dark, light, or high_contrast") { |v| options[:builtin] = v }
         opts.on("--check", "check WCAG contrast") { options[:check] = true }
         opts.on("--strict", "fail when AA is not met") { options[:strict] = true }
         opts.on("--export DIR", "write a deterministic palette PNG") { |v| options[:export] = v }
+        opts.on("--themes NAMES", "comma-separated built-in themes") { |v| options[:themes] = v.split(",").map(&:strip) }
+        opts.on("--no-watch", "disable file watching") { options[:no_watch] = true }
       end
       parser.parse!(argv)
-      theme = options[:builtin] ? Auva.builtin(options[:builtin]) : Auva.load(argv.fetch(0))
-      results = Auva.contrast(theme)
-      if options[:check] || options[:strict]
-        results.each { |result| out.puts "#{result.pair}: #{format("%.2f", result.ratio)}:1 #{result.aaa ? "AAA" : result.aa ? "AA" : "FAIL"}" }
+      names = options[:themes] || [options[:builtin] || "file"]
+      themes = names.map { |name| name == "file" ? Auva.load(argv.fetch(0)) : Auva.builtin(name) }
+      failures = themes.each_with_index.sum do |theme, index|
+        results = Auva.contrast(theme)
+        if options[:check] || options[:strict]
+          results.each { |result| out.puts "#{result.pair}: #{format("%.2f", result.ratio)}:1 #{result.aaa ? "AAA" : result.aa ? "AA" : "FAIL"}" }
+        end
+        if options[:export]
+          destination = themes.length == 1 ? options[:export] : File.join(options[:export], names[index])
+          Png.write_sheets(theme, destination)
+        end
+        results.count { |result| !result.aa }
       end
-      if options[:export]
-        Dir.mkdir(options[:export]) unless Dir.exist?(options[:export])
-        Png.write(theme, File.join(options[:export], "colors.png"))
-      end
-      options[:strict] && results.any? { |result| !result.aa } ? 1 : 0
+      options[:strict] && failures.positive? ? 1 : 0
     rescue OptionParser::ParseError, KeyError, Error => error
       err.puts "auva: #{error.message}"
       1

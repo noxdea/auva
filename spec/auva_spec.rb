@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "tempfile"
+require "fileutils"
 
 RSpec.describe Auva do
   let(:tokens) do
@@ -37,5 +38,13 @@ RSpec.describe Auva do
 
   it "computes the known black and white ratio" do
     expect(Zaniah::Color.parse("#000").contrast_ratio(Zaniah::Color.parse("#fff"))).to eq(21.0)
+  end
+
+  it "writes deterministic category sheets" do
+    directory = Dir.mktmpdir("auva")
+    expect(Auva::CLI.run(["--builtin", "dark", "--export", File.join(directory, "nested")])).to eq(0)
+    expect(Dir[File.join(directory, "nested", "*.png")].map { |path| File.basename(path) }).to include("colors.png", "typography.png")
+  ensure
+    FileUtils.remove_entry(directory) if directory
   end
 end

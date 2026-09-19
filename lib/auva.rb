@@ -237,7 +237,9 @@ module Auva
 
     def self.element_bytes(theme, width:, height:, category:)
       preview_theme = theme.with(motion: theme.motion.with(reduced: true))
-      window = Zaniah::Platform.open_window(backend: :headless, width: width, height: height)
+      app = Zaniah::App.new
+      window = app.open_window(backend: :headless, width: width, height: height)
+      app.global(:theme, preview_theme)
       window.draw { Preview.element(preview_theme, category: category) }
       window.tick
       Zaniah::PNG.encode(window.device.width.to_i, window.device.height.to_i, window.device.pixels)
@@ -400,16 +402,21 @@ module Auva
 
     def self.show(theme, category: :colors, backend: :auto, watcher: nil, title: "Auva", themes: nil)
       selected = backend == :auto ? (RUBY_PLATFORM.include?("darwin") ? :mac : RUBY_PLATFORM.match?(/mswin|mingw/) ? :windows : :linux) : backend
-      window = Zaniah::Platform.open_window(backend: selected, width: 800, height: 600, title: title)
+      app = Zaniah::App.new
+      window = app.open_window(backend: selected, width: 800, height: 600, title: title)
       current = theme
-      tabs = build_theme_tabs(themes, category) if themes && themes.length > 1
+      app.global(:theme, current)
+      tabs = build_theme_tabs(themes, category) { |index| app.global(:theme, themes.fetch(index).last) } if themes && themes.length > 1
       window.draw do
         root = tabs ? Zaniah::Div.new.flex_col.bg(current.colors.background).child(tabs) : element(current, category: category)
         root
       end
       window.on_tick do
         if watcher&.poll
-          current = watcher.theme unless watcher.error
+          unless watcher.error
+            current = watcher.theme
+            app.global(:theme, current)
+          end
           window.request_frame
         end
       end
@@ -418,9 +425,9 @@ module Auva
       window&.close
     end
 
-    def self.build_theme_tabs(themes, category)
+    def self.build_theme_tabs(themes, category, &on_change)
       items = themes.map { |name, preview_theme| [name.to_s, element(preview_theme, category: category)] }
-      Zaniah::UI::Tabs.new(items)
+      Zaniah::UI::Tabs.new(items).on_change { |index, _event, _context| on_change&.call(index) }
     end
     private_class_method :build_theme_tabs
   end

@@ -1,39 +1,37 @@
 # Auva
 
-TODO: Delete this and the text below, and describe your gem
-
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/auva`. To experiment with that code, run `bin/console` for an interactive prompt.
+JSONC design-token loading and deterministic theme sheets for Zaniah. Auva
+validates token names from Zaniah's own `members`, reports source lines, and
+checks WCAG contrast ratios.
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
-
-Install the gem and add to the application's Gemfile by executing:
-
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
-```
-
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```sh
+gem install auva
 ```
 
 ## Usage
 
-TODO: Write usage instructions here
+```sh
+auva tokens.jsonc --check --strict
+auva --builtin dark --export public/theme
+```
+
+The export directory contains deterministic `colors.png`, `typography.png`,
+`spacing.png`, `radii.png`, `shadows.png`, and `motion.png` sheets. Library
+consumers can load a theme with `Auva.load("tokens.jsonc")`.
+
+Supported token categories are `extends`, `colors`, `typography`, `spacing`,
+`radii`, `shadows`, and `motion`; unknown names fail with a line number.
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+Run `rake spec` and `gem build --strict auva.gemspec`.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/auva.
+Bug reports and pull requests are welcome at https://github.com/noxdea/auva.
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+MIT.

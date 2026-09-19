@@ -2,6 +2,7 @@
 
 require "tempfile"
 require "fileutils"
+require "stringio"
 
 RSpec.describe Auva do
   let(:tokens) do
@@ -77,5 +78,13 @@ RSpec.describe Auva do
       expect(bytes.byteslice(0, 8)).to eq("\x89PNG\r\n\x1a\n".b)
       expect(bytes).to eq(Auva::Preview.render(Zaniah::Theme.dark, category: category, width: 320, height: 240))
     end
+  end
+
+  it "falls back when the native preview backend is unavailable" do
+    output = StringIO.new
+    allow(output).to receive(:tty?).and_return(true)
+    allow(Auva::Preview).to receive(:show).and_raise(SystemCallError, "backend unavailable")
+    expect(Auva::CLI.run(["--builtin", "dark"], out: output, err: StringIO.new)).to eq(0)
+    expect(output.string).to include("loaded 1 theme")
   end
 end

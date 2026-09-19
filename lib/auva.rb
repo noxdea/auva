@@ -473,7 +473,12 @@ module Auva
       end
       if !options[:export] && !options[:check] && !options[:strict] && out.tty? && defined?(Zaniah::Platform)
         watcher = source_path && !options[:builtin] && !options[:themes] ? Watcher.new(source_path) : nil
-        Preview.show(themes.first, watcher: watcher, title: "Auva · #{names.first}")
+        begin
+          Preview.show(themes.first, watcher: watcher, title: "Auva · #{names.first}")
+        rescue StandardError => error
+          err.puts "auva: preview unavailable: #{error.message}"
+          out.puts "auva: loaded #{themes.length} theme(s)"
+        end
         return 0
       end
       if options[:watch] && !options[:no_watch] && source_path && !options[:builtin] && !options[:themes]

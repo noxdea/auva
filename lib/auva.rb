@@ -5,6 +5,7 @@ require "fileutils"
 require "zlib"
 require "kochab"
 require "zaniah"
+require "zaniah/ui"
 require_relative "auva/version"
 
 module Auva
@@ -252,6 +253,10 @@ module Auva
 
   class Preview
     CATEGORIES = %i[colors typography spacing radii shadows motion buttons components].freeze
+    COMPONENT_COUNT = 31
+    GalleryItem = Data.define(:name, :component) do
+      def label = name
+    end
 
     def self.render(theme, category: :colors, width: 800, height: 480)
       raise Error, "unknown preview category: #{category}" unless CATEGORIES.include?(category.to_sym)
@@ -265,6 +270,8 @@ module Auva
     def self.element(theme, category: :colors)
       category = category.to_sym
       raise Error, "unknown preview category: #{category}" unless CATEGORIES.include?(category)
+      return component_gallery(theme) if category == :components
+      return typography_preview(theme) if category == :typography
       colors = Png.send(:category_colors, theme, category)
       title = Zaniah::Text.new("Auva · #{category}", size: 26, color: theme.colors.text)
       root = Zaniah::Div.new.flex_col.p(32).gap(12).bg(theme.colors.background).child(title)
@@ -275,6 +282,64 @@ module Auva
         ))
       end
       root
+    end
+
+    def self.typography_preview(theme)
+      sizes = %i[xs sm md lg xl] + ["2xl"]
+      body = Zaniah::Div.new.flex_col.gap(12).children(sizes.map do |size|
+        Zaniah::UI::Card.new(
+          Zaniah::UI::Label.new(size.to_s, tone: :muted, size: :xs),
+          size == "2xl" ? Zaniah::Text.new("Aa あいう漢字 — #{size}", size: theme.typography.size_2xl, color: theme.colors.text) :
+            Zaniah::UI::Label.new("Aa あいう漢字 — #{size}", size: size, wrap: :word)
+        )
+      end)
+      Zaniah::Div.new.flex_col.p(32).gap(12).bg(theme.colors.background)
+        .child(Zaniah::UI::Label.new("Auva · typography", size: :xl)).child(Zaniah::ScrollView.new(scrollbar: :always).flex_1.child(body))
+    end
+
+    def self.component_gallery(theme)
+      rows = [
+        ["Button", Zaniah::UI::Button.new("Primary")],
+        ["IconButton", Zaniah::UI::IconButton.new(:info, label: "Info")],
+        ["ToggleButton", Zaniah::UI::ToggleButton.new("Toggle", value: true)],
+        ["ButtonGroup", Zaniah::UI::ButtonGroup.new(Zaniah::UI::Button.new("One"), Zaniah::UI::Button.new("Two", variant: :secondary))],
+        ["Checkbox", Zaniah::UI::Checkbox.new("Accept", value: true)],
+        ["Radio", Zaniah::UI::Radio.new("Choice", value: true)],
+        ["RadioGroup", Zaniah::UI::RadioGroup.new([["Dark", :dark], ["Light", :light]], value: :dark)],
+        ["Switch", Zaniah::UI::Switch.new("Enabled", value: true)],
+        ["Slider", Zaniah::UI::Slider.new(value: 65, label: "Volume")],
+        ["RangeSlider", Zaniah::UI::RangeSlider.new(value: [20, 80])],
+        ["ProgressBar", Zaniah::UI::ProgressBar.new(value: 72)],
+        ["Spinner", Zaniah::UI::Spinner.new],
+        ["Badge", Zaniah::UI::Badge.new("New", variant: :success)],
+        ["Card", Zaniah::UI::Card.new(Zaniah::UI::Label.new("Card content"))],
+        ["TextField", Zaniah::UI::TextField.new("Example", label: "Name")],
+        ["TextArea", Zaniah::UI::TextArea.new("Longer text", rows: 2, label: "Description")],
+        ["Select", Zaniah::UI::Select.new([["Dark", :dark], ["Light", :light]], value: :dark)],
+        ["MultiSelect", Zaniah::UI::MultiSelect.new(%w[Ruby UI], value: ["Ruby"])],
+        ["Tabs", Zaniah::UI::Tabs.new([["Overview", Zaniah::UI::Label.new("Overview")], ["Details", Zaniah::UI::Label.new("Details")]])],
+        ["Accordion", Zaniah::UI::Accordion.new([["Details", Zaniah::UI::Label.new("Expanded content")]], open: [0])],
+        ["Breadcrumb", Zaniah::UI::Breadcrumb.new(["Home", "Design", "Preview"])],
+        ["Pagination", Zaniah::UI::Pagination.new(page: 2, pages: 4)],
+        ["Table", Zaniah::UI::Table.new([{name: "Alpha", value: "1"}, {name: "Beta", value: "2"}], columns: [
+          {key: :name, label: "Name", width: 160, sortable: false}, {key: :value, label: "Value", width: 100, sortable: false}
+        ], height: 110, selection: :none)],
+        ["ListView", Zaniah::UI::ListView.new(%w[First Second Third], height: 100)],
+        ["TreeView", Zaniah::UI::TreeView.new([{id: :root, label: "Root", children: [{id: :leaf, label: "Leaf"}]}], height: 100)],
+        ["EmptyState", Zaniah::UI::EmptyState.new("Nothing here", message: "Add an item to continue")],
+        ["Sparkline", Zaniah::UI::Sparkline.new([1, 3, 2, 5])],
+        ["BarChart", Zaniah::UI::BarChart.new({"Build" => [2, 4, 3]}, width: 240, height: 100)],
+        ["RichText", Zaniah::UI::RichText.new([{text: "Highlighted", color: theme.colors.accent}, " text"])],
+        ["Divider", Zaniah::UI::Divider.new],
+        ["StatusBar", Zaniah::UI::StatusBar.new(Zaniah::UI::Label.new("Ready"), Zaniah::UI::Badge.new("OK", variant: :success))]
+      ]
+      items = rows.map { |name, component| GalleryItem.new(name, component) }
+      body = Zaniah::UI::ListView.new(items, height: 560, row_height: 180) do |item, _index|
+        Zaniah::UI::Card.new(Zaniah::UI::Label.new(item.name, tone: :muted, size: :xs), item.component)
+      end
+      Zaniah::Div.new.flex_col.p(32).gap(12).bg(theme.colors.background)
+        .child(Zaniah::UI::Label.new("Auva · components (#{rows.length})", size: :xl))
+        .child(Zaniah::ScrollView.new(scrollbar: :always).flex_1.child(body))
     end
 
     def self.show(theme, category: :colors, backend: :auto, watcher: nil, title: "Auva")

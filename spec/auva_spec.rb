@@ -64,5 +64,10 @@ RSpec.describe Auva do
 
   it "builds a native preview element without requiring a window" do
     expect(Auva::Preview.element(Zaniah::Theme.dark, category: :components)).to be_a(Zaniah::Div)
+    expect(Auva::Preview::COMPONENT_COUNT).to be >= 20
+  end
+
+  it "builds the full typography scale preview" do
+    expect(Auva::Preview.element(Zaniah::Theme.dark, category: :typography)).to be_a(Zaniah::Div)
   end
 end

@@ -47,4 +47,13 @@ RSpec.describe Auva do
   ensure
     FileUtils.remove_entry(directory) if directory
   end
+
+  it "reports malformed shadow members as token errors" do
+    file = Tempfile.new(["tokens", ".jsonc"])
+    file.write('{"shadows":{"sm":{"wat":"x"}}}')
+    file.close
+    expect { Auva.load(file.path) }.to raise_error(Auva::Error, /unknown token/)
+  ensure
+    file&.unlink
+  end
 end

@@ -43,7 +43,7 @@ RSpec.describe Auva do
   it "writes deterministic category sheets" do
     directory = Dir.mktmpdir("auva")
     expect(Auva::CLI.run(["--builtin", "dark", "--export", File.join(directory, "nested")])).to eq(0)
-    expect(Dir[File.join(directory, "nested", "*.png")].map { |path| File.basename(path) }).to include("colors.png", "typography.png")
+    expect(Dir[File.join(directory, "nested", "*.png")].map { |path| File.basename(path) }).to include("colors.png", "typography.png", "buttons.png")
   ensure
     FileUtils.remove_entry(directory) if directory
   end

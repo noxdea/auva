@@ -209,13 +209,14 @@ module Auva
 
     def self.write_sheets(theme, directory)
       FileUtils.mkdir_p(directory)
-      %w[colors typography spacing radii shadows motion components].each do |category|
+      %w[colors typography spacing radii shadows motion buttons components].each do |category|
         write(theme, File.join(directory, "#{category}.png"), category: category.to_sym)
       end
     end
 
     def self.category_colors(theme, category)
       names = case category.to_sym
+      when :buttons then %i[accent accent_hover text_inverse]
       when :typography then %i[text text_muted accent]
       when :spacing then %i[accent info]
       when :radii then %i[accent_hover accent]
@@ -250,7 +251,7 @@ module Auva
   end
 
   class Preview
-    CATEGORIES = %i[colors typography spacing radii shadows motion components].freeze
+    CATEGORIES = %i[colors typography spacing radii shadows motion buttons components].freeze
 
     def self.render(theme, category: :colors, width: 800, height: 480)
       raise Error, "unknown preview category: #{category}" unless CATEGORIES.include?(category.to_sym)

@@ -18,8 +18,8 @@ auva --builtin dark --export public/theme
 ```
 
 The export directory contains deterministic `colors.png`, `typography.png`,
-`spacing.png`, `radii.png`, `shadows.png`, `motion.png`, and `components.png`
-sheets. Library
+`spacing.png`, `radii.png`, `shadows.png`, `motion.png`, `buttons.png`, and
+`components.png` sheets. Library
 consumers can load a theme with `Auva.load("tokens.jsonc")`.
 
 Supported token categories are `extends`, `colors`, `typography`, `spacing`,

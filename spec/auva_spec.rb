@@ -61,4 +61,8 @@ RSpec.describe Auva do
     expect(Auva::Preview.render(Zaniah::Theme.dark, category: :components).byteslice(0, 4)).to eq("\x89PNG".b)
     expect { Auva::Preview.render(Zaniah::Theme.dark, category: :unknown) }.to raise_error(Auva::Error)
   end
+
+  it "builds a native preview element without requiring a window" do
+    expect(Auva::Preview.element(Zaniah::Theme.dark, category: :components)).to be_a(Zaniah::Div)
+  end
 end

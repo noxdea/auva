@@ -260,6 +260,37 @@ module Auva
     def self.render_all(theme, directory)
       Png.write_sheets(theme, directory)
     end
+
+    def self.element(theme, category: :colors)
+      category = category.to_sym
+      raise Error, "unknown preview category: #{category}" unless CATEGORIES.include?(category)
+      colors = Png.send(:category_colors, theme, category)
+      title = Zaniah::Text.new("Auva · #{category}", size: 26, color: theme.colors.text)
+      root = Zaniah::Div.new.flex_col.p(32).gap(12).bg(theme.colors.background).child(title)
+      colors.each_with_index do |color, index|
+        swatch = Zaniah::Div.new.w(36).h(36).bg(color)
+        root = root.child(Zaniah::Div.new.flex_row.gap(12).items_center.child(swatch).child(
+          Zaniah::Text.new("#{category}[#{index}]", size: 16, color: theme.colors.text)
+        ))
+      end
+      root
+    end
+
+    def self.show(theme, category: :colors, backend: :auto, watcher: nil, title: "Auva")
+      selected = backend == :auto ? (RUBY_PLATFORM.include?("darwin") ? :mac : RUBY_PLATFORM.match?(/mswin|mingw/) ? :windows : :linux) : backend
+      window = Zaniah::Platform.open_window(backend: selected, width: 800, height: 600, title: title)
+      current = theme
+      window.draw { element(current, category: category) }
+      window.on_tick do
+        if watcher&.poll
+          current = watcher.theme unless watcher.error
+          window.request_frame
+        end
+      end
+      window.run
+    ensure
+      window&.close
+    end
   end
 
   class Watcher
@@ -312,6 +343,11 @@ module Auva
           Png.write_sheets(theme, destination)
         end
         results.count { |result| !result.aa }
+      end
+      if !options[:export] && !options[:check] && !options[:strict] && out.tty? && defined?(Zaniah::Platform)
+        watcher = source_path && !options[:builtin] && !options[:themes] ? Watcher.new(source_path) : nil
+        Preview.show(themes.first, watcher: watcher, title: "Auva · #{names.first}")
+        return 0
       end
       if options[:watch] && !options[:no_watch] && source_path && !options[:builtin] && !options[:themes]
         watcher = Watcher.new(source_path)

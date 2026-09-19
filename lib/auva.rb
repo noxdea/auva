@@ -194,6 +194,7 @@ module Auva
     end
 
     def self.bytes(theme, width: 800, height: 480, category: :colors)
+      return element_bytes(theme, width: width, height: height, category: category) if %i[typography components].include?(category.to_sym)
       colors = category_colors(theme, category)
       background = rgba(theme.colors.background)
       pixels = Array.new(width * height, background)
@@ -232,7 +233,18 @@ module Auva
     def self.category_offset(category)
       category.to_s.bytes.sum % 31
     end
-    private_class_method :category_colors, :category_offset
+
+    def self.element_bytes(theme, width:, height:, category:)
+      preview_theme = theme.with(motion: theme.motion.with(reduced: true))
+      window = Zaniah::Platform.open_window(backend: :headless, width: width, height: height)
+      window.draw { Preview.element(preview_theme, category: category) }
+      window.tick
+      Zaniah::PNG.encode(window.device.width.to_i, window.device.height.to_i, window.device.pixels)
+    ensure
+      window&.close
+    end
+
+    private_class_method :category_colors, :category_offset, :element_bytes
 
     def self.encode(width, height, pixels)
       raw = (0...height).map { |y| "\0".b + pixels.slice(y * width, width).join }.join

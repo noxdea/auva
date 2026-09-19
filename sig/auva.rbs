@@ -1,0 +1,13 @@
+module Auva
+  VERSION: String
+  def self.load: (String path) -> untyped
+  def self.builtin: (String name) -> untyped
+  def self.contrast: (untyped theme, ?pairs: Array[Array[String]]) -> Array[untyped]
+  class Error < StandardError
+  end
+  class Watcher
+    attr_reader theme: untyped
+    def initialize: (String path, ?theme: untyped, ?latency: Numeric) -> void
+    def poll: () -> bool
+  end
+end

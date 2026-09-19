@@ -87,4 +87,9 @@ RSpec.describe Auva do
     expect(Auva::CLI.run(["--builtin", "dark"], out: output, err: StringIO.new)).to eq(0)
     expect(output.string).to include("loaded 1 theme")
   end
+
+  it "builds switchable theme tabs for the preview" do
+    tabs = Auva::Preview.send(:build_theme_tabs, [["dark", Zaniah::Theme.dark], ["light", Zaniah::Theme.light]], :colors)
+    expect(tabs).to be_a(Zaniah::UI::Tabs)
+  end
 end

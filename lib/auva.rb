@@ -398,11 +398,15 @@ module Auva
         .child(Zaniah::ScrollView.new(scrollbar: :always).flex_1.child(body))
     end
 
-    def self.show(theme, category: :colors, backend: :auto, watcher: nil, title: "Auva")
+    def self.show(theme, category: :colors, backend: :auto, watcher: nil, title: "Auva", themes: nil)
       selected = backend == :auto ? (RUBY_PLATFORM.include?("darwin") ? :mac : RUBY_PLATFORM.match?(/mswin|mingw/) ? :windows : :linux) : backend
       window = Zaniah::Platform.open_window(backend: selected, width: 800, height: 600, title: title)
       current = theme
-      window.draw { element(current, category: category) }
+      tabs = build_theme_tabs(themes, category) if themes && themes.length > 1
+      window.draw do
+        root = tabs ? Zaniah::Div.new.flex_col.bg(current.colors.background).child(tabs) : element(current, category: category)
+        root
+      end
       window.on_tick do
         if watcher&.poll
           current = watcher.theme unless watcher.error
@@ -413,6 +417,12 @@ module Auva
     ensure
       window&.close
     end
+
+    def self.build_theme_tabs(themes, category)
+      items = themes.map { |name, preview_theme| [name.to_s, element(preview_theme, category: category)] }
+      Zaniah::UI::Tabs.new(items)
+    end
+    private_class_method :build_theme_tabs
   end
 
   class Watcher
@@ -473,8 +483,9 @@ module Auva
       end
       if !options[:export] && !options[:check] && !options[:strict] && out.tty? && defined?(Zaniah::Platform)
         watcher = source_path && !options[:builtin] && !options[:themes] ? Watcher.new(source_path) : nil
+        theme_tabs = options[:themes] ? names.zip(themes) : nil
         begin
-          Preview.show(themes.first, watcher: watcher, title: "Auva · #{names.first}")
+          Preview.show(themes.first, watcher: watcher, title: "Auva · #{names.first}", themes: theme_tabs)
         rescue StandardError => error
           err.puts "auva: preview unavailable: #{error.message}"
           out.puts "auva: loaded #{themes.length} theme(s)"

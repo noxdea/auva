@@ -37,6 +37,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "kochab", "~> 0.2"
+  spec.add_dependency "fiddle"
   spec.add_dependency "zaniah", ">= 0.6.0", "< 0.7"
 
   # For more information and examples about making a new gem, check out our

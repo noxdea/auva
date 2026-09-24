@@ -30,7 +30,6 @@ RSpec.describe Auva do
   end
 
   it "accepts every Zaniah syntax token and inherits unspecified ones" do
-    skip "Zaniah syntax is unavailable" unless Zaniah::Theme.light.respond_to?(:syntax)
     names = %w[keyword string comment number function type constant punctuation operator variable text]
     file = Tempfile.new(["syntax", ".jsonc"])
     file.write(JSON.generate("extends" => "light", "syntax" => names.to_h { |name| [name, "#123456"] }))
@@ -49,7 +48,6 @@ RSpec.describe Auva do
   end
 
   it "reports unknown and invalid syntax colors with their token locations" do
-    skip "Zaniah syntax is unavailable" unless Zaniah::Theme.light.respond_to?(:syntax)
     file = Tempfile.new(["syntax", ".jsonc"])
     file.write("{\n  \"syntax\": { \"keyword\": \"not-a-color\" }\n}\n")
     file.close

@@ -3,6 +3,7 @@
 require "tempfile"
 require "fileutils"
 require "stringio"
+require "json"
 
 RSpec.describe Auva do
   let(:tokens) do
@@ -26,6 +27,37 @@ RSpec.describe Auva do
     expect(theme.motion.reduced?).to be(true)
   ensure
     tokens&.unlink
+  end
+
+  it "accepts every Zaniah syntax token and inherits unspecified ones" do
+    skip "Zaniah syntax is unavailable" unless Zaniah::Theme.light.respond_to?(:syntax)
+    names = %w[keyword string comment number function type constant punctuation operator variable text]
+    file = Tempfile.new(["syntax", ".jsonc"])
+    file.write(JSON.generate("extends" => "light", "syntax" => names.to_h { |name| [name, "#123456"] }))
+    file.close
+
+    theme = Auva.load(file.path)
+
+    expect(theme.syntax.members.map(&:to_s)).to eq(names)
+    names.each { |name| expect(theme.syntax.public_send(name)).to eq(Zaniah::Color.parse("#123456")) }
+    expect(Auva.builtin("light").syntax.keyword).not_to eq(theme.syntax.keyword)
+    File.write(file.path, JSON.generate("extends" => "light", "syntax" => {"keyword" => "#123456"}))
+    partial = Auva.load(file.path)
+    expect(partial.syntax.string).to eq(Auva.builtin("light").syntax.string)
+  ensure
+    file&.unlink
+  end
+
+  it "reports unknown and invalid syntax colors with their token locations" do
+    skip "Zaniah syntax is unavailable" unless Zaniah::Theme.light.respond_to?(:syntax)
+    file = Tempfile.new(["syntax", ".jsonc"])
+    file.write("{\n  \"syntax\": { \"keyword\": \"not-a-color\" }\n}\n")
+    file.close
+    expect { Auva.load(file.path) }.to raise_error(Auva::Error, /invalid color \(line 2: syntax.keyword\)/)
+    File.write(file.path, "{\n  \"syntax\": { \"unknown\": \"#fff\" }\n}\n")
+    expect { Auva.load(file.path) }.to raise_error(Auva::Error, /unknown token.*line 2: syntax.unknown/)
+  ensure
+    file&.unlink
   end
 
   it "reports unknown keys with a source line" do

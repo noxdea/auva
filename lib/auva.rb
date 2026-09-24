@@ -72,20 +72,22 @@ module Auva
 
     def call
       validate_top_level
-      @base.with(
+      overrides = {
         colors: build_colors,
         typography: build_data(:typography),
         motion: build_data(:motion),
         spacing: build_hash(:spacing, integer_keys: true),
         radii: build_hash(:radii, symbol_keys: true),
         shadows: build_shadows
-      )
+      }
+      overrides[:syntax] = build_syntax if @tokens.key?("syntax")
+      @base.with(**overrides)
     end
 
     private
 
     def validate_top_level
-      unknown = @tokens.keys.map(&:to_s) - %w[extends colors typography spacing radii shadows motion]
+      unknown = @tokens.keys.map(&:to_s) - %w[extends colors typography spacing radii shadows motion syntax]
       raise_token("unknown token category: #{unknown.join(", ")}", [unknown.first]) unless unknown.empty?
       base = @tokens["extends"]
       unless base.nil? || %w[dark light high_contrast high-contrast none].include?(base)
@@ -99,6 +101,15 @@ module Auva
       validate_keys(values, @base.colors.members.map(&:to_s), ["colors"])
       overrides = values.to_h { |key, value| [key.to_sym, parse_color(value, ["colors", key])] }
       @base.colors.with(**overrides)
+    end
+
+    def build_syntax
+      raise_token("syntax tokens require a Zaniah theme with syntax support", ["syntax"]) unless @base.respond_to?(:syntax)
+      values = @tokens.fetch("syntax", {})
+      ensure_hash(values, ["syntax"])
+      validate_keys(values, @base.syntax.members.map(&:to_s), ["syntax"])
+      overrides = values.to_h { |key, value| [key.to_sym, parse_color(value, ["syntax", key])] }
+      @base.syntax.with(**overrides)
     end
 
     def build_data(category)

@@ -56,6 +56,10 @@ Create `tokens.jsonc`:
   "colors": {
     "accent": "#245b9b"
   },
+  "syntax": {
+    "keyword": "#7c3aed",
+    "string": "#15803d"
+  },
   "motion": {
     "reduced": true
   }
@@ -80,6 +84,7 @@ auva tokens.jsonc --check --strict
 |---|---|
 | `extends` | Base theme: `dark`, `light`, `high_contrast`, or `none` |
 | `colors` | Zaniah color members such as `accent` and `background` |
+| `syntax` | Code-editor colors: `keyword`, `string`, `comment`, `number`, `function`, `type`, `constant`, `punctuation`, `operator`, `variable`, `text` |
 | `typography` | Font families, sizes, and related type tokens |
 | `spacing` | Numeric spacing scale entries |
 | `radii` | Named border radii |
@@ -87,6 +92,8 @@ auva tokens.jsonc --check --strict
 | `motion` | Durations, easing values, and reduced-motion preference |
 
 Unspecified values remain inherited from the selected base theme.
+`syntax` requires a Zaniah theme with `Theme::Syntax` support; token files
+without it remain compatible with older Zaniah versions.
 
 ## CLI
 

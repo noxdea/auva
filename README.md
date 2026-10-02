@@ -27,6 +27,8 @@ Auva is a JSONC design-token loader and deterministic theme-sheet generator
 for [Zaniah](https://github.com/noxdea/zaniah). It validates tokens against
 Zaniah's own theme members, reports source locations, and checks WCAG contrast.
 
+![Auva's dark color preview with tabs for light and high-contrast themes](docs/media/overview.png)
+
 ## Features
 
 - **JSONC tokens** — comments and trailing commas are accepted.

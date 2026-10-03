@@ -1,0 +1,46 @@
+title: Auva
+description: Load design tokens, preview themes, check contrast, and export theme sheets.
+url: https://noxdea.github.io
+baseurl: /auva
+repository: noxdea/auva
+markdown: kramdown
+plugins:
+  - jekyll-relative-links
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+defaults:
+  - scope:
+      path: docs
+    values:
+      layout: guide
+guide:
+  - title: Getting started
+    url: /docs/
+  - title: Design tokens
+    url: /docs/tokens.html
+  - title: Preview and export
+    url: /docs/preview.html
+  - title: Contrast checks
+    url: /docs/contrast.html
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - Rakefile
+  - auva.gemspec
+  - auva-0.1.0.gem
+  - README.md
+  - CHANGELOG.md
+  - LICENSE.txt
+  - bench
+  - bin
+  - demo
+  - docs/adr
+  - exe
+  - lib
+  - pkg
+  - sig
+  - spec
+  - test
+  - tools
+  - tmp

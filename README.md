@@ -13,6 +13,8 @@
 </p>
 
 <p align="center">
+  <a href="https://noxdea.github.io/auva/">Website</a> ·
+  <a href="https://noxdea.github.io/auva/docs/">User Guide</a> ·
   <a href="#features">Features</a> ·
   <a href="#installation">Installation</a> ·
   <a href="#quick-start">Quick start</a> ·

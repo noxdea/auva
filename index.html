@@ -67,7 +67,7 @@
     }
     @media (max-width: 580px) {
       .wrap { width: min(100% - 24px, 1180px); }
-      nav a:not(:last-child) { display: none; }
+      nav a[href^="#"] { display: none; }
       .token-lab { grid-template-columns: 1fr; }
       .source { border-right: 0; border-bottom: 1px solid var(--line); }
       .row, .categories { grid-template-columns: 1fr; }
@@ -84,7 +84,7 @@
     <nav aria-label="Primary navigation">
       <a href="#contract">Contract</a>
       <a href="#system">System</a>
-      <a href="https://github.com/noxdea/auva">Source</a>
+      <a href="docs/">User guide</a><a href="https://github.com/noxdea/auva">Source</a>
     </nav>
   </header>
   <main id="content">
@@ -93,7 +93,7 @@
         <p class="context">Design tokens for Zaniah</p>
         <h1>Make the theme inspectable before it reaches the interface.</h1>
         <p class="lede">Auva loads JSONC into a validated Zaniah theme, checks essential contrast pairs, and exports deterministic sheets for every token category.</p>
-        <div class="actions"><a class="button primary" href="https://rubygems.org/gems/auva">Install the gem</a><a class="button" href="https://github.com/noxdea/auva#quick-start">Read the guide</a></div>
+        <div class="actions"><a class="button primary" href="https://rubygems.org/gems/auva">Install the gem</a><a class="button" href="docs/">Read the guide</a></div>
       </div>
       <div class="token-lab" aria-label="Auva token validation example">
         <pre class="source"><code><span class="comment">// tokens.jsonc</span>

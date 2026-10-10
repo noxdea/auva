@@ -8,7 +8,7 @@ plugins:
   - jekyll-relative-links
 kramdown:
   input: GFM
-  syntax_highlighter: rouge
+  syntax_highlighter: rouge # codespell:ignore rouge
 defaults:
   - scope:
       path: docs
